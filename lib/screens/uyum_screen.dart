@@ -165,57 +165,83 @@ class _UyumScreenState extends State<UyumScreen> {
                             child: Column(
                               children: [
                                 Container(
-                                  constraints: const BoxConstraints(minWidth: 320, maxWidth: 500),
-                                  height: 140,
+                                  height: 162,
                                   margin: const EdgeInsets.only(bottom: 16),
                                   decoration: BoxDecoration(
                                     border: Border.all(color: borderColor, width: 2),
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(32),
                                   ),
                                   child: InkWell(
                                     onTap: fileNameRad == null && textRad.text.trim().isEmpty ? uploadFileRad : null,
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.upload_file, size: 40, color: Color(0xFF2C3848)),
-                                        const SizedBox(height: 8),
-                                        fileNameRad == null
-                                            ? const Text('Radyoloji raporunu yükle (.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFF2C3848)))
-                                            : Text('Yüklendi: $fileNameRad', style: const TextStyle(fontSize: 13, color: Colors.green)),
-                                        if (fileNameRad != null)
-                                          TextButton(
-                                            onPressed: () => setState(() => fileNameRad = null),
-                                            child: const Text('Dosyayı kaldır'),
-                                          ),
-                                      ],
+                                    borderRadius: BorderRadius.circular(32),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: fileNameRad == null
+                                            ? Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  const Icon(Icons.upload_file, size: 32, color: Color(0xFF2C3848)),
+                                                  SizedBox(height: 12),
+                                                  const Text('Radyoloji raporunu yükle', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Color(0xFF2C3848))),
+                                                  SizedBox(height: 2),
+                                                  Text('(.pdf, .png, .jpg, .jpeg)', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Color(0xFFB0B4BA))),
+                                                ],
+                                              )
+                                            : Row(
+                                                children: [
+                                                  Expanded(child: Text('Yüklendi: $fileNameRad', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.green))),
+                                                  TextButton(
+                                                    onPressed: () => setState(() => fileNameRad = null),
+                                                    child: const Text(
+                                                      'Dosyayı kaldır',
+                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
                                     ),
                                   ),
                                 ),
                                 Container(
-                                  constraints: const BoxConstraints(minWidth: 320, maxWidth: 500),
-                                  height: 140,
+                                  height: 162,
                                   decoration: BoxDecoration(
                                     border: Border.all(color: borderColor, width: 2),
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(32),
                                   ),
                                   child: InkWell(
                                     onTap: fileNamePat == null && textPat.text.trim().isEmpty ? uploadFilePat : null,
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.upload_file, size: 40, color: Color(0xFF2C3848)),
-                                        const SizedBox(height: 8),
-                                        fileNamePat == null
-                                            ? const Text('Patoloji raporunu yükle (.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFF2C3848)))
-                                            : Text('Yüklendi: $fileNamePat', style: const TextStyle(fontSize: 13, color: Colors.green)),
-                                        if (fileNamePat != null)
-                                          TextButton(
-                                            onPressed: () => setState(() => fileNamePat = null),
-                                            child: const Text('Dosyayı kaldır'),
-                                          ),
-                                      ],
+                                    borderRadius: BorderRadius.circular(32),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: fileNamePat == null
+                                            ? Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  const Icon(Icons.upload_file, size: 32, color: Color(0xFF2C3848)),
+                                                  SizedBox(height: 12),
+                                                  const Text('Patoloji raporunu yükle', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Color(0xFF2C3848))),
+                                                  SizedBox(height: 2),
+                                                  Text('(.pdf, .png, .jpg, .jpeg)', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Color(0xFFB0B4BA))),
+                                                ],
+                                              )
+                                            : Row(
+                                                children: [
+                                                  Expanded(child: Text('Yüklendi: $fileNamePat', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.green))),
+                                                  TextButton(
+                                                    onPressed: () => setState(() => fileNamePat = null),
+                                                    child: const Text(
+                                                      'Dosyayı kaldır',
+                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
                                     ),
                                   ),
                                 ),

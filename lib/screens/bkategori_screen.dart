@@ -127,12 +127,22 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                                     const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
                                     const SizedBox(height: 12),
                                     fileName == null
-                                        ? const Text('Patoloji raporunu yükle (.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848)))
+                                        ? Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Text('Patoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
+                                              SizedBox(height: 4),
+                                              Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
+                                            ],
+                                          )
                                         : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
                                     if (fileName != null)
                                       TextButton(
                                         onPressed: () => setState(() => fileName = null),
-                                        child: const Text('Dosyayı kaldır'),
+                                        child: const Text(
+                                          'Dosyayı kaldır',
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -154,7 +164,7 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
-                                    'Patoloji Formu',
+                                    'Patoloji Raporu',
                                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
                                   ),
                                   const SizedBox(height: 8),
@@ -196,7 +206,10 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                                   if (fileName != null)
                                     TextButton(
                                       onPressed: () => setState(() => fileName = null),
-                                      child: const Text('Dosyayı kaldır'),
+                                      child: const Text(
+                                        'Dosyayı kaldır',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      ),
                                     ),
                                 ],
                               ),

@@ -10,9 +10,9 @@ class AnalysisTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<_TabData> tabs = [
       _TabData('BI-RADS Analizi', '/birads'),
-      _TabData('B-Kategori Tahmini', '/bkategori'),
-      _TabData('Uyum Analizi', '/uyum'),
-      _TabData('Tanı & Tedavi', '/tani'),
+      _TabData('Patoloji B Kategori Tahmini', '/bkategori'),
+      _TabData('B Kategori Karşılaştırılması', '/uyum'),
+      _TabData('Uyumluluk Analizi', '/tani'),
     ];
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
