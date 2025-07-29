@@ -265,7 +265,7 @@ class _UyumScreenState extends State<UyumScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textRad,
-                                    enabled: fileNameRad == null,
+                                    enabled: true,
                                     maxLines: 3,
                                     onChanged: onTextChangedRad,
                                     decoration: const InputDecoration(
@@ -281,7 +281,7 @@ class _UyumScreenState extends State<UyumScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textPat,
-                                    enabled: fileNamePat == null,
+                                    enabled: true,
                                     maxLines: 3,
                                     onChanged: onTextChangedPat,
                                     decoration: const InputDecoration(
@@ -369,7 +369,7 @@ class _UyumScreenState extends State<UyumScreen> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textRad,
-                                  enabled: fileNameRad == null,
+                                  enabled: true,
                                   maxLines: 3,
                                   onChanged: onTextChangedRad,
                                   decoration: const InputDecoration(
@@ -385,7 +385,7 @@ class _UyumScreenState extends State<UyumScreen> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textPat,
-                                  enabled: fileNamePat == null,
+                                  enabled: true,
                                   maxLines: 3,
                                   onChanged: onTextChangedPat,
                                   decoration: const InputDecoration(
