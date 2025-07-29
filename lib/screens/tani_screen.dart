@@ -36,11 +36,7 @@ class _TaniScreenState extends State<TaniScreen> {
     setState(() {});
   }
 
-  bool get canAnalyze {
-    final radOk = (fileNameRad != null && fileNameRad!.isNotEmpty && textRad.text.trim().isEmpty) || (fileNameRad == null && textRad.text.trim().isNotEmpty);
-    final patOk = (fileNamePat != null && fileNamePat!.isNotEmpty && textPat.text.trim().isEmpty) || (fileNamePat == null && textPat.text.trim().isNotEmpty);
-    return radOk && patOk;
-  }
+  bool get canAnalyze => textRad.text.trim().isNotEmpty && textPat.text.trim().isNotEmpty;
 
   void analyze() {
     final radEmpty = (fileNameRad == null || fileNameRad!.isEmpty) && textRad.text.trim().isEmpty;
