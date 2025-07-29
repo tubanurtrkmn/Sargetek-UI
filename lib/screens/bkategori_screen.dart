@@ -40,7 +40,7 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
     setState(() {});
   }
 
-  bool get canAnalyze => (fileName != null && fileName!.isNotEmpty && textController.text.trim().isEmpty) || (fileName == null && textController.text.trim().isNotEmpty);
+  bool get canAnalyze => textController.text.trim().isNotEmpty;
 
   void analyze() {
     if (!canAnalyze) {
@@ -170,7 +170,7 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textController,
-                                    enabled: fileName == null,
+                                    enabled: true,
                                     maxLines: 8,
                                     onChanged: onTextChanged,
                                     decoration: const InputDecoration(
@@ -232,7 +232,7 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textController,
-                                  enabled: fileName == null,
+                                  enabled: true,
                                   maxLines: 8,
                                   onChanged: onTextChanged,
                                   decoration: const InputDecoration(
