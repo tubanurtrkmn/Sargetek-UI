@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'tab_bar_widget.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class UyumScreen extends StatefulWidget {
   final bool showTabBar;
@@ -11,88 +12,14 @@ class UyumScreen extends StatefulWidget {
 }
 
 class _UyumScreenState extends State<UyumScreen> {
-  String? fileNameRad;
-  String? fileNamePat;
-  final TextEditingController textRad = TextEditingController();
-  final TextEditingController textPat = TextEditingController();
+  final TextEditingController biradsController = TextEditingController();
+  final TextEditingController patolojiController = TextEditingController();
   bool showWarning = false;
   bool showResult = false;
 
-  void uploadFileRad() {
-    if (textRad.text.trim().isNotEmpty) return; // metin girildiyse yükleme devre dışı
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
-    uploadInput.click();
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        setState(() {
-          fileNameRad = file.name;
-          textRad.clear();
-        });
-      }
-    });
-  }
+  bool get canAnalyze => biradsController.text.trim().isNotEmpty && patolojiController.text.trim().isNotEmpty;
 
-  void uploadFilePat() {
-    if (textPat.text.trim().isNotEmpty) return; // metin girildiyse yükleme devre dışı
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
-    uploadInput.click();
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        setState(() {
-          fileNamePat = file.name;
-          textPat.clear();
-        });
-      }
-    });
-  }
-
-  void onTextChangedRad(String value) {
-    if (value.isNotEmpty) {
-      setState(() {
-        fileNameRad = null;
-      });
-    }
-    setState(() {});
-  }
-
-  void onTextChangedPat(String value) {
-    if (value.isNotEmpty) {
-      setState(() {
-        fileNamePat = null;
-      });
-    }
-    setState(() {});
-  }
-
-  bool get canAnalyze {
-    final radOk = (fileNameRad != null && fileNameRad!.isNotEmpty && textRad.text.trim().isEmpty) || (fileNameRad == null && textRad.text.trim().isNotEmpty);
-    final patOk = (fileNamePat != null && fileNamePat!.isNotEmpty && textPat.text.trim().isEmpty) || (fileNamePat == null && textPat.text.trim().isNotEmpty);
-    return radOk && patOk;
-  }
-
-  void analyze() {
-    final radEmpty = (fileNameRad == null || fileNameRad!.isEmpty) && textRad.text.trim().isEmpty;
-    final patEmpty = (fileNamePat == null || fileNamePat!.isEmpty) && textPat.text.trim().isEmpty;
-    if (radEmpty || patEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Uyarı'),
-          content: const Text('Metin yazınız ya da dosya yükleyiniz.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
+  void analyze() async {
     if (!canAnalyze) {
       setState(() {
         showWarning = true;
@@ -103,35 +30,65 @@ class _UyumScreenState extends State<UyumScreen> {
       showWarning = false;
       showResult = true;
     });
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sonuç'),
-        content: const Text('Sonuç: deneme'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() { showResult = false; });
-              Navigator.of(context).pop();
-            },
-            child: const Text('Kapat'),
+
+    try {
+      final result = await predictUyum(biradsController.text, patolojiController.text);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Uyum Sonucu'),
+          content: Text(
+            result != null
+                ? 'Uyumsuz:  \t${result['uyumsuz'] == 1 ? 'Evet' : 'Hayır'}\nGüven: ${result['confidence']}'
+                : 'Tahmin alınamadı!',
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  showResult = false;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Kapat'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Hata'),
+          content: Text('Tahmin alınamadı: $e'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  showResult = false;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Kapat'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 700;
     final Color bgColor = const Color(0xE6EAF3FA);
-    final Color borderColor = Colors.black;
     final Color buttonColor = const Color(0xFF233D85);
     return Scaffold(
       backgroundColor: bgColor,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            height: 580,
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -140,287 +97,123 @@ class _UyumScreenState extends State<UyumScreen> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (widget.showTabBar) const AnalysisTabBar(activeRoute: '/uyum'),
                 if (widget.showTabBar) const SizedBox(height: 32),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'RADYOLOJİ VE PATOLOJİ RAPORUNU YÜKLE YA DA OLUŞTUR',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: Color(0xFF2C3848),
-                    ),
+                const Text(
+                  'RADYOLOJİ VE PATOLOJİ KATEGORİLERİNİ GİRİN',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color(0xFF2C3848),
                   ),
                 ),
                 const SizedBox(height: 16),
-                isWide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Sol: İki yükleme kutusu (alt alta)
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: 162,
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: borderColor, width: 2),
-                                    borderRadius: BorderRadius.circular(32),
-                                  ),
-                                  child: InkWell(
-                                    onTap: fileNameRad == null && textRad.text.trim().isEmpty ? uploadFileRad : null,
-                                    borderRadius: BorderRadius.circular(32),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: fileNameRad == null
-                                            ? Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  const Icon(Icons.upload_file, size: 32, color: Color(0xFF2C3848)),
-                                                  SizedBox(height: 12),
-                                                  const Text('Radyoloji raporunu yükle', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Color(0xFF2C3848))),
-                                                  SizedBox(height: 2),
-                                                  Text('(.pdf, .png, .jpg, .jpeg)', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Color(0xFFB0B4BA))),
-                                                ],
-                                              )
-                                            : Row(
-                                                children: [
-                                                  Expanded(child: Text('Yüklendi: $fileNameRad', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.green))),
-                                                  TextButton(
-                                                    onPressed: () => setState(() => fileNameRad = null),
-                                                    child: const Text(
-                                                      'Dosyayı kaldır',
-                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  height: 162,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: borderColor, width: 2),
-                                    borderRadius: BorderRadius.circular(32),
-                                  ),
-                                  child: InkWell(
-                                    onTap: fileNamePat == null && textPat.text.trim().isEmpty ? uploadFilePat : null,
-                                    borderRadius: BorderRadius.circular(32),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: fileNamePat == null
-                                            ? Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  const Icon(Icons.upload_file, size: 32, color: Color(0xFF2C3848)),
-                                                  SizedBox(height: 12),
-                                                  const Text('Patoloji raporunu yükle', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Color(0xFF2C3848))),
-                                                  SizedBox(height: 2),
-                                                  Text('(.pdf, .png, .jpg, .jpeg)', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Color(0xFFB0B4BA))),
-                                                ],
-                                              )
-                                            : Row(
-                                                children: [
-                                                  Expanded(child: Text('Yüklendi: $fileNamePat', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.green))),
-                                                  TextButton(
-                                                    onPressed: () => setState(() => fileNamePat = null),
-                                                    child: const Text(
-                                                      'Dosyayı kaldır',
-                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                          // Sağ: İki metin kutusu (alt alta, geniş ve ferah)
-                          Expanded(
-                            flex: 1,
-                            child: Container(
-                              height: 340,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: bgColor,
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Radyoloji Lexicon Uygun Tanımı',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: textRad,
-                                    enabled: fileNameRad == null,
-                                    maxLines: 3,
-                                    onChanged: onTextChangedRad,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Açıklayınız.',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  const Text(
-                                    'Patoloji Raporu',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: textPat,
-                                    enabled: fileNamePat == null,
-                                    maxLines: 3,
-                                    onChanged: onTextChangedPat,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Açıklayınız.',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          Container(
-                            constraints: const BoxConstraints(minWidth: 320, maxWidth: 500),
-                            height: 140,
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: borderColor, width: 2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: InkWell(
-                              onTap: fileNameRad == null && textRad.text.trim().isEmpty ? uploadFileRad : null,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.upload_file, size: 40, color: Color(0xFF2C3848)),
-                                  const SizedBox(height: 8),
-                                  fileNameRad == null
-                                      ? const Text('Radyoloji raporunu yükle (.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFF2C3848)))
-                                      : Text('Yüklendi: $fileNameRad', style: const TextStyle(fontSize: 13, color: Colors.green)),
-                                  if (fileNameRad != null)
-                                    TextButton(
-                                      onPressed: () => setState(() => fileNameRad = null),
-                                      child: const Text('Dosyayı kaldır'),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Container(
-                            constraints: const BoxConstraints(minWidth: 320, maxWidth: 500),
-                            height: 140,
-                            margin: const EdgeInsets.only(bottom: 16, top: 0),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: borderColor, width: 2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: InkWell(
-                              onTap: fileNamePat == null && textPat.text.trim().isEmpty ? uploadFilePat : null,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.upload_file, size: 40, color: Color(0xFF2C3848)),
-                                  const SizedBox(height: 8),
-                                  fileNamePat == null
-                                      ? const Text('Patoloji raporunu yükle (.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFF2C3848)))
-                                      : Text('Yüklendi: $fileNamePat', style: const TextStyle(fontSize: 13, color: Colors.green)),
-                                  if (fileNamePat != null)
-                                    TextButton(
-                                      onPressed: () => setState(() => fileNamePat = null),
-                                      child: const Text('Dosyayı kaldır'),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Radyoloji Lexicon Uygun Tanımı',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: textRad,
-                                  enabled: fileNameRad == null,
-                                  maxLines: 3,
-                                  onChanged: onTextChangedRad,
-                                  decoration: const InputDecoration(
-                                    hintText: 'Açıklayınız.',
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                const Text(
-                                  'Patoloji Raporu',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: textPat,
-                                  enabled: fileNamePat == null,
-                                  maxLines: 3,
-                                  onChanged: onTextChangedPat,
-                                  decoration: const InputDecoration(
-                                    hintText: 'Açıklayınız.',
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'BI-RADS Kategorisi',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
                       ),
+                      const SizedBox(height: 5),
+                      TextField(
+                        controller: biradsController,
+                        maxLines: 2,
+                        readOnly: false,
+                        showCursor: true,
+                        enableInteractiveSelection: true,
+                        decoration: InputDecoration(
+                          hintText: 'Örn: 4a',
+                          filled: true,
+                          fillColor: const Color(0xFFF4FAFF),
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Color(0xFFB0B4BA)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Color(0xFFB0B4BA)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Color(0xFFB0B4BA)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onTap: () {},
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Patoloji Raporu',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: patolojiController,
+                        maxLines: 5,
+                        readOnly: false,
+                        showCursor: true,
+                        enableInteractiveSelection: true,
+                        decoration: InputDecoration(
+                          hintText: 'Patoloji raporunu giriniz.',
+                          filled: true,
+                          fillColor: const Color(0xFFF4FAFF),
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Color(0xFFB0B4BA)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Color(0xFFB0B4BA)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Color(0xFFB0B4BA)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onTap: () {},
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 32),
                 if (showWarning)
                   const Padding(
-                    padding: EdgeInsets.only(bottom: 12),
-                    child: Text('Her iki alan için de dosya yükleyin veya metin girin (ikisi birden olamaz).', style: TextStyle(color: Colors.red, fontSize: 16)),
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Text('Lütfen iki alanı da doldurun.', style: TextStyle(color: Colors.red, fontSize: 16)),
                   ),
-                SizedBox(
-                  width: 320,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: canAnalyze ? analyze : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: buttonColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 320,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: canAnalyze ? analyze : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text('Sonuçları Analiz Et', style: TextStyle(fontSize: 20, color: Colors.white)),
                       ),
                     ),
-                    child: const Text('Sonuçları Analiz Et', style: TextStyle(fontSize: 20, color: Colors.white)),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -428,5 +221,22 @@ class _UyumScreenState extends State<UyumScreen> {
         ),
       ),
     );
+  }
+}
+
+Future<Map<String, dynamic>?> predictUyum(String birads, String patoloji) async {
+  final url = Uri.parse('http://127.0.0.1:8000/predictUyum'); // Gerekirse değiştir
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'birads_kategori': birads,
+      'patoloji_kategori': patoloji,
+    }),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    return null;
   }
 }

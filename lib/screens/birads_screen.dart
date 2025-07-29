@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
+// import 'dart:html' as html;
 import 'tab_bar_widget.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class BiradsScreen extends StatefulWidget {
   final bool showTabBar;
@@ -16,20 +18,20 @@ class _BiradsScreenState extends State<BiradsScreen> {
   bool showWarning = false;
   bool showResult = false;
 
-  void uploadFile() {
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
-    uploadInput.click();
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        setState(() {
-          fileName = file.name;
-          textController.clear();
-        });
-      }
-    });
-  }
+  // void uploadFile() {
+  //   html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+  //   uploadInput.accept = '.pdf';
+  //   uploadInput.click();
+  //   uploadInput.onChange.listen((event) {
+  //     final file = uploadInput.files?.first;
+  //     if (file != null) {
+  //       setState(() {
+  //         fileName = file.name;
+  //         textController.clear();
+  //       });
+  //     }
+  //   });
+  // }
 
   void onTextChanged(String value) {
     if (value.isNotEmpty) {
@@ -40,9 +42,9 @@ class _BiradsScreenState extends State<BiradsScreen> {
     setState(() {});
   }
 
-  bool get canAnalyze => (fileName != null && fileName!.isNotEmpty && textController.text.trim().isEmpty) || (fileName == null && textController.text.trim().isNotEmpty);
+  bool get canAnalyze => textController.text.trim().isNotEmpty;
 
-  void analyze() {
+  void analyze() async {
     if (!canAnalyze) {
       setState(() {
         showWarning = true;
@@ -53,29 +55,53 @@ class _BiradsScreenState extends State<BiradsScreen> {
       showWarning = false;
       showResult = true;
     });
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sonuç'),
-        content: const Text('Sonuç: deneme'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() { showResult = false; });
-              Navigator.of(context).pop();
-            },
-            child: const Text('Kapat'),
-          ),
-        ],
-      ),
-    );
+
+    try {
+      final result = await predictBirads(
+        textController.text, // metin girdisi
+        "Boş", // unnamed_12 için örnek değer
+      );
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sonuç'),
+          content: Text('BI-RADS: ${result['biradsCategory']}\nGüven: ${result['confidence']}'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() { showResult = false; });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Kapat'),
+            ),
+          ],
+        ), //pop-up
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Hata'),
+          content: Text('Tahmin alınamadı: $e'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() { showResult = false; });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Kapat'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 700;
     final Color bgColor = const Color(0xE6EAF3FA);
-    final Color borderColor = Colors.black;
+    final Color borderColor = const Color(0xFFB0B4BA);
     final Color buttonColor = const Color(0xFF233D85);
     return Scaffold(
       backgroundColor: bgColor,
@@ -97,7 +123,7 @@ class _BiradsScreenState extends State<BiradsScreen> {
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'RADYOLOJİ RAPORUNU YÜKLE YA DA OLUŞTUR',
+                    'RADYOLOJİ RAPORUNU OLUŞTUR',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -110,47 +136,47 @@ class _BiradsScreenState extends State<BiradsScreen> {
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Sol: Dosya yükleme kutusu
-                          Expanded(
-                            flex: 1,
-                            child: Container(
-                              height: 340,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: borderColor, width: 2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: InkWell(
-                                onTap: fileName == null && textController.text.trim().isEmpty ? uploadFile : null,
-                                borderRadius: BorderRadius.circular(4),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
-                                    const SizedBox(height: 12),
-                                    fileName == null
-                                        ? Column(
-                                            children: [
-                                              const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
-                                              SizedBox(height: 4),
-                                              Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
-                                            ],
-                                          )
-                                        : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
-                                    if (fileName != null)
-                                      TextButton(
-                                        onPressed: () => setState(() => fileName = null),
-                                        child: const Text(
-                                          'Dosyayı kaldır',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                          // Sağ: Açıklama kutusu
+                          // Sol: Dosya yükleme kutusu - YORUM SATIRI
+                          // Expanded(
+                          //   flex: 1,
+                          //   child: Container(
+                          //     height: 340,
+                          //     decoration: BoxDecoration(
+                          //       border: Border.all(color: borderColor, width: 2),
+                          //       borderRadius: BorderRadius.circular(4),
+                          //     ),
+                          //     child: InkWell(
+                          //       onTap: fileName == null && textController.text.trim().isEmpty ? uploadFile : null,
+                          //       borderRadius: BorderRadius.circular(4),
+                          //       child: Column(
+                          //         mainAxisAlignment: MainAxisAlignment.center,
+                          //         children: [
+                          //           const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
+                          //           const SizedBox(height: 12),
+                          //           fileName == null
+                          //               ? Column(
+                          //                   children: [
+                          //                     const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
+                          //                     SizedBox(height: 4),
+                          //                     Text('(.pdf)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
+                          //                   ],
+                          //                 )
+                          //               : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
+                          //           if (fileName != null)
+                          //             TextButton(
+                          //               onPressed: () => setState(() => fileName = null),
+                          //               child: const Text(
+                          //                 'Dosyayı kaldır',
+                          //                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          //               ),
+                          //             ),
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(width: 32),
+                          // Sağ: Açıklama kutusu - TAM GENİŞLİK
                           Expanded(
                             flex: 1,
                             child: Container(
@@ -170,7 +196,6 @@ class _BiradsScreenState extends State<BiradsScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textController,
-                                    enabled: fileName == null,
                                     maxLines: 8,
                                     onChanged: onTextChanged,
                                     decoration: const InputDecoration(
@@ -186,42 +211,42 @@ class _BiradsScreenState extends State<BiradsScreen> {
                       )
                     : Column(
                         children: [
-                          Container(
-                            height: 340,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: borderColor, width: 2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: InkWell(
-                              onTap: fileName == null && textController.text.trim().isEmpty ? uploadFile : null,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
-                                  const SizedBox(height: 12),
-                                  fileName == null
-                                      ? Column(
-                                          children: [
-                                            const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
-                                            SizedBox(height: 4),
-                                            Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
-                                          ],
-                                        )
-                                      : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
-                                  if (fileName != null)
-                                    TextButton(
-                                      onPressed: () => setState(() => fileName = null),
-                                      child: const Text(
-                                        'Dosyayı kaldır',
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          // Container(
+                          //   height: 340,
+                          //   decoration: BoxDecoration(
+                          //     border: Border.all(color: borderColor, width: 2),
+                          //     borderRadius: BorderRadius.circular(4),
+                          //   ),
+                          //   child: InkWell(
+                          //     onTap: fileName == null && textController.text.trim().isEmpty ? uploadFile : null,
+                          //     borderRadius: BorderRadius.circular(4),
+                          //     child: Column(
+                          //       mainAxisAlignment: MainAxisAlignment.center,
+                          //       children: [
+                          //         const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
+                          //         const SizedBox(height: 12),
+                          //         fileName == null
+                          //             ? Column(
+                          //                 children: [
+                          //                   const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
+                          //                   SizedBox(height: 4),
+                          //                   Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
+                          //                 ],
+                          //               )
+                          //             : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
+                          //         if (fileName != null)
+                          //           TextButton(
+                          //             onPressed: () => setState(() => fileName = null),
+                          //             child: const Text(
+                          //               'Dosyayı kaldır',
+                          //               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          //             ),
+                          //           ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 16),
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -232,13 +257,12 @@ class _BiradsScreenState extends State<BiradsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Radyoloji Formu',
+                                  'Radyoloji Raporu',
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
                                 ),
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textController,
-                                  enabled: fileName == null,
                                   maxLines: 8,
                                   onChanged: onTextChanged,
                                   decoration: const InputDecoration(
@@ -255,7 +279,7 @@ class _BiradsScreenState extends State<BiradsScreen> {
                 if (showWarning)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 12),
-                    child: Text('Lütfen dosya yükleyin veya metin girin (ikisi birden olamaz).', style: TextStyle(color: Colors.red, fontSize: 16)),
+                    child: Text('Lütfen metin girin.', style: TextStyle(color: Colors.red, fontSize: 16)),
                   ),
                 SizedBox(
                   width: 320,
@@ -277,5 +301,23 @@ class _BiradsScreenState extends State<BiradsScreen> {
         ),
       ),
     );
+  }
+}
+
+// API çağrısı fonksiyonu
+Future<Map<String, dynamic>> predictBirads(String lexicon, String unnamed12) async {
+  final url = Uri.parse('http://127.0.0.1:8000/predictBirads');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'lexicon_uygun_tanim': lexicon,
+      'unnamed_12': unnamed12,
+    }),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Tahmin alınamadı: ${response.body}');
   }
 }
