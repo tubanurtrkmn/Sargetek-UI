@@ -11,36 +11,20 @@ class BiradsScreen extends StatefulWidget {
 }
 
 class _BiradsScreenState extends State<BiradsScreen> {
-  String? fileName;
   final TextEditingController textController = TextEditingController();
   bool showWarning = false;
   bool showResult = false;
 
-  void uploadFile() {
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
-    uploadInput.click();
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        setState(() {
-          fileName = file.name;
-          textController.clear();
-        });
-      }
-    });
-  }
-
   void onTextChanged(String value) {
     if (value.isNotEmpty) {
       setState(() {
-        fileName = null;
+        // fileName = null; // Removed as per edit hint
       });
     }
     setState(() {});
   }
 
-  bool get canAnalyze => (fileName != null && fileName!.isNotEmpty && textController.text.trim().isEmpty) || (fileName == null && textController.text.trim().isNotEmpty);
+  bool get canAnalyze => textController.text.trim().isNotEmpty;
 
   void analyze() {
     if (!canAnalyze) {
@@ -120,30 +104,30 @@ class _BiradsScreenState extends State<BiradsScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: InkWell(
-                                onTap: fileName == null && textController.text.trim().isEmpty ? uploadFile : null,
+                                onTap: null, // Removed as per edit hint
                                 borderRadius: BorderRadius.circular(4),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
                                     const SizedBox(height: 12),
-                                    fileName == null
-                                        ? Column(
-                                            children: [
-                                              const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
-                                              SizedBox(height: 4),
-                                              Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
-                                            ],
-                                          )
-                                        : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
-                                    if (fileName != null)
-                                      TextButton(
-                                        onPressed: () => setState(() => fileName = null),
-                                        child: const Text(
-                                          'Dosyayı kaldır',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                        ),
-                                      ),
+                                    // fileName == null // Removed as per edit hint
+                                    //     ? Column( // Removed as per edit hint
+                                    //         children: [ // Removed as per edit hint
+                                    //           const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))), // Removed as per edit hint
+                                    //           SizedBox(height: 4), // Removed as per edit hint
+                                    //           Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))), // Removed as per edit hint
+                                    //         ], // Removed as per edit hint
+                                    //       ) // Removed as per edit hint
+                                    //     : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)), // Removed as per edit hint
+                                    // if (fileName != null) // Removed as per edit hint
+                                    //   TextButton( // Removed as per edit hint
+                                    //     onPressed: () => setState(() => fileName = null), // Removed as per edit hint
+                                    //     child: const Text( // Removed as per edit hint
+                                    //       'Dosyayı kaldır', // Removed as per edit hint
+                                    //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15), // Removed as per edit hint
+                                    //     ), // Removed as per edit hint
+                                    //   ), // Removed as per edit hint
                                   ],
                                 ),
                               ),
@@ -170,7 +154,7 @@ class _BiradsScreenState extends State<BiradsScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textController,
-                                    enabled: fileName == null,
+                                    enabled: true, // Changed as per edit hint
                                     maxLines: 8,
                                     onChanged: onTextChanged,
                                     decoration: const InputDecoration(
@@ -193,30 +177,30 @@ class _BiradsScreenState extends State<BiradsScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: InkWell(
-                              onTap: fileName == null && textController.text.trim().isEmpty ? uploadFile : null,
+                              onTap: null, // Removed as per edit hint
                               borderRadius: BorderRadius.circular(4),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(Icons.upload_file, size: 48, color: Color(0xFF2C3848)),
                                   const SizedBox(height: 12),
-                                  fileName == null
-                                      ? Column(
-                                          children: [
-                                            const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))),
-                                            SizedBox(height: 4),
-                                            Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))),
-                                          ],
-                                        )
-                                      : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)),
-                                  if (fileName != null)
-                                    TextButton(
-                                      onPressed: () => setState(() => fileName = null),
-                                      child: const Text(
-                                        'Dosyayı kaldır',
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                      ),
-                                    ),
+                                  // fileName == null // Removed as per edit hint
+                                  //     ? Column( // Removed as per edit hint
+                                  //         children: [ // Removed as per edit hint
+                                  //           const Text('Radyoloji raporunu yükle', style: TextStyle(fontSize: 18, color: Color(0xFF2C3848))), // Removed as per edit hint
+                                  //           SizedBox(height: 4), // Removed as per edit hint
+                                  //           Text('(.pdf, .png, .jpg, .jpeg)', style: TextStyle(fontSize: 15, color: Color(0xFFB0B4BA))), // Removed as per edit hint
+                                  //         ], // Removed as per edit hint
+                                  //       ) // Removed as per edit hint
+                                  //     : Text('Yüklendi: $fileName', style: const TextStyle(fontSize: 16, color: Colors.green)), // Removed as per edit hint
+                                  // if (fileName != null) // Removed as per edit hint
+                                  //   TextButton( // Removed as per edit hint
+                                  //     onPressed: () => setState(() => fileName = null), // Removed as per edit hint
+                                  //     child: const Text( // Removed as per edit hint
+                                  //       'Dosyayı kaldır', // Removed as per edit hint
+                                  //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15), // Removed as per edit hint
+                                  //     ), // Removed as per edit hint
+                                  //   ), // Removed as per edit hint
                                 ],
                               ),
                             ),
@@ -238,7 +222,7 @@ class _BiradsScreenState extends State<BiradsScreen> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textController,
-                                  enabled: fileName == null,
+                                  enabled: true, // Changed as per edit hint
                                   maxLines: 8,
                                   onChanged: onTextChanged,
                                   decoration: const InputDecoration(
@@ -255,7 +239,7 @@ class _BiradsScreenState extends State<BiradsScreen> {
                 if (showWarning)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 12),
-                    child: Text('Lütfen dosya yükleyin veya metin girin (ikisi birden olamaz).', style: TextStyle(color: Colors.red, fontSize: 16)),
+                    child: Text('Lütfen metin girin (dosya yükleme kaldırıldı).', style: TextStyle(color: Colors.red, fontSize: 16)), // Updated message as per edit hint
                   ),
                 SizedBox(
                   width: 320,

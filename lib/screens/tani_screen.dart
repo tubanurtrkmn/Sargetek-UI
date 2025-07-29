@@ -18,38 +18,6 @@ class _TaniScreenState extends State<TaniScreen> {
   bool showWarning = false;
   bool showResult = false;
 
-  void uploadFileRad() {
-    if (textRad.text.trim().isNotEmpty) return;
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
-    uploadInput.click();
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        setState(() {
-          fileNameRad = file.name;
-          textRad.clear();
-        });
-      }
-    });
-  }
-
-  void uploadFilePat() {
-    if (textPat.text.trim().isNotEmpty) return;
-    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
-    uploadInput.click();
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        setState(() {
-          fileNamePat = file.name;
-          textPat.clear();
-        });
-      }
-    });
-  }
-
   void onTextChangedRad(String value) {
     if (value.isNotEmpty) {
       setState(() {
@@ -171,7 +139,7 @@ class _TaniScreenState extends State<TaniScreen> {
                                     borderRadius: BorderRadius.circular(32),
                                   ),
                                   child: InkWell(
-                                    onTap: fileNameRad == null && textRad.text.trim().isEmpty ? uploadFileRad : null,
+                                    onTap: fileNameRad == null && textRad.text.trim().isEmpty ? null : null,
                                     borderRadius: BorderRadius.circular(32),
                                     child: Center(
                                       child: Padding(
@@ -211,7 +179,7 @@ class _TaniScreenState extends State<TaniScreen> {
                                     borderRadius: BorderRadius.circular(32),
                                   ),
                                   child: InkWell(
-                                    onTap: fileNamePat == null && textPat.text.trim().isEmpty ? uploadFilePat : null,
+                                    onTap: fileNamePat == null && textPat.text.trim().isEmpty ? null : null,
                                     borderRadius: BorderRadius.circular(32),
                                     child: Center(
                                       child: Padding(
@@ -267,7 +235,7 @@ class _TaniScreenState extends State<TaniScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textRad,
-                                    enabled: fileNameRad == null,
+                                    enabled: true,
                                     maxLines: 3,
                                     onChanged: onTextChangedRad,
                                     decoration: const InputDecoration(
@@ -283,7 +251,7 @@ class _TaniScreenState extends State<TaniScreen> {
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: textPat,
-                                    enabled: fileNamePat == null,
+                                    enabled: true,
                                     maxLines: 3,
                                     onChanged: onTextChangedPat,
                                     decoration: const InputDecoration(
@@ -308,7 +276,7 @@ class _TaniScreenState extends State<TaniScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: InkWell(
-                              onTap: fileNameRad == null && textRad.text.trim().isEmpty ? uploadFileRad : null,
+                              onTap: fileNameRad == null && textRad.text.trim().isEmpty ? null : null,
                               borderRadius: BorderRadius.circular(4),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -336,7 +304,7 @@ class _TaniScreenState extends State<TaniScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: InkWell(
-                              onTap: fileNamePat == null && textPat.text.trim().isEmpty ? uploadFilePat : null,
+                              onTap: fileNamePat == null && textPat.text.trim().isEmpty ? null : null,
                               borderRadius: BorderRadius.circular(4),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -371,7 +339,7 @@ class _TaniScreenState extends State<TaniScreen> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textRad,
-                                  enabled: fileNameRad == null,
+                                  enabled: true,
                                   maxLines: 3,
                                   onChanged: onTextChangedRad,
                                   decoration: const InputDecoration(
@@ -387,7 +355,7 @@ class _TaniScreenState extends State<TaniScreen> {
                                 const SizedBox(height: 8),
                                 TextField(
                                   controller: textPat,
-                                  enabled: fileNamePat == null,
+                                  enabled: true,
                                   maxLines: 3,
                                   onChanged: onTextChangedPat,
                                   decoration: const InputDecoration(
