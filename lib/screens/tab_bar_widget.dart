@@ -11,7 +11,7 @@ class AnalysisTabBar extends StatelessWidget {
     final List<_TabData> tabs = [
       // _TabData('BI-RADS Analizi', '/birads'), // YORUM SATIRI - BI-RADS sekmesi geçici olarak kaldırıldı
       _TabData('Patoloji B Kategori Tahmini', '/bkategori'),
-      _TabData('B Kategori Karşılaştırılması', '/uyum'),
+      _TabData(' Birads-B Kategori Karşılaştırması ', '/uyum'),
       _TabData('Uyumluluk Analizi', '/tani'),
     ];
     return Row(
