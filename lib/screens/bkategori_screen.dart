@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'tab_bar_widget.dart';
@@ -17,32 +16,18 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
   final TextEditingController textController = TextEditingController();
   bool showWarning = false;
   bool showResult = false;
-
-  // void uploadFile() {
-  //   html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-  //   uploadInput.accept = '.pdf';
-  //   uploadInput.click();
-  //   uploadInput.onChange.listen((event) {
-  //     final file = uploadInput.files?.first;
-  //     if (file != null) {
-  //       setState(() {
-  //         fileName = file.name;
-  //         textController.clear();
-  //       });
-  //     }
-  //   });
-  // }
+  bool isLoading = false;
 
   void onTextChanged(String value) {
     if (value.isNotEmpty) {
       setState(() {
         fileName = null;
+        showWarning = false;
       });
     }
-    setState(() {});
   }
 
-  bool get canAnalyze => textController.text.trim().isNotEmpty;
+  bool get canAnalyze => textController.text.trim().isNotEmpty && !isLoading;
 
   void analyze() async {
     if (!canAnalyze) {
@@ -51,22 +36,32 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
       });
       return;
     }
+
     setState(() {
       showWarning = false;
-      showResult = true;
+      isLoading = true;
     });
 
     try {
       final result = await predictPatolojiB(textController.text);
+      setState(() {
+        showResult = true;
+        isLoading = false;
+      });
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Sonuç'),
-          content: Text('Patoloji B Kategori: ${result['pathCategory']}\nGüven: ${result['confidence']}'),
+          content: Text(
+              'Patoloji B Kategori: ${result['pathCategory']}\nGüven: ${result['confidence']}'),
           actions: [
             TextButton(
               onPressed: () {
-                setState(() { showResult = false; });
+                setState(() {
+                  showResult = false;
+                  textController.clear();
+                });
                 Navigator.of(context).pop();
               },
               child: const Text('Kapat'),
@@ -75,6 +70,10 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
         ),
       );
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -83,7 +82,6 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                setState(() { showResult = false; });
                 Navigator.of(context).pop();
               },
               child: const Text('Kapat'),
@@ -98,8 +96,8 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 700;
     final Color bgColor = const Color(0xE6EAF3FA);
-    final Color borderColor = const Color(0xFFB0B4BA);
     final Color buttonColor = const Color(0xFF233D85);
+
     return Scaffold(
       backgroundColor: bgColor,
       body: Center(
@@ -114,12 +112,11 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
               borderRadius: BorderRadius.circular(40),
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (widget.showTabBar)
                   const AnalysisTabBar(activeRoute: '/bkategori'),
-                if (widget.showTabBar) const SizedBox(height: 32),
+                if (widget.showTabBar) const SizedBox(height: 24),
                 const Text(
                   'PATOLOJİ RAPORUNU GİRİNİZ',
                   style: TextStyle(
@@ -141,7 +138,10 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                     children: [
                       const Text(
                         'Patoloji Raporu',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3848)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF2C3848)),
                       ),
                       const SizedBox(height: 6),
                       TextField(
@@ -151,9 +151,8 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                         decoration: const InputDecoration(
                           hintText: 'Patoloji raporunu giriniz.',
                           border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                            color: Color(0xFFB0B4BA),
-                          ),
+                            borderSide:
+                                BorderSide(color: Color(0xFFB0B4BA)),
                           ),
                         ),
                       ),
@@ -164,7 +163,13 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                 if (showWarning)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 12),
-                    child: Text('Lütfen metin girin.', style: TextStyle(color: Color.fromARGB(255, 102, 21, 122), fontSize: 16)),
+                    child: Text(
+                      'Lütfen metin girin.',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 102, 21, 122),
+                        fontSize: 16,
+                      ),
+                    ),
                   ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -180,7 +185,15 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: const Text('Sonuçları Analiz Et', style: TextStyle(fontSize: 20, color: Colors.white)),
+                        child: isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'Sonuçları Analiz Et',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
+                              ),
                       ),
                     ),
                   ],
@@ -196,13 +209,13 @@ class _BKategoriScreenState extends State<BKategoriScreen> {
 
 Future<Map<String, dynamic>> predictPatolojiB(String sonucPatoloji) async {
   final url = Uri.parse('http://127.0.0.1:8000/predictPatolojiB');
+
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'sonuc_patoloji': sonucPatoloji,
-    }),
+    body: jsonEncode({'sonuc_patoloji': sonucPatoloji}),
   );
+
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
