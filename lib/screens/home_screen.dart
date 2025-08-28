@@ -47,10 +47,18 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 40),
-                // 3 sekme kartları - tam genişlik
+                // 4 sekme kartları - tam genişlik
                 isWide
                     ? Row(
                         children: [
+                          Expanded(
+                            child: _HomeCard(
+                              title: 'BI-RADS Analizi',
+                              desc: 'Radyoloji raporlarından BI-RADS kategorisinin tahmini',
+                              onTap: () => Navigator.pushNamed(context, '/birads'),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: _HomeCard(
                               title: 'Patoloji B-Kategori Tahmini',
@@ -78,6 +86,12 @@ class HomeScreen extends StatelessWidget {
                       )
                     : Column(
                         children: [
+                          _HomeCard(
+                            title: 'BI-RADS Analizi',
+                            desc: 'Radyoloji raporlarından BI-RADS kategorisinin tahmini',
+                            onTap: () => Navigator.pushNamed(context, '/birads'),
+                          ),
+                          const SizedBox(height: 8),
                           _HomeCard(
                             title: 'Patoloji B-Kategori Tahmini',
                             desc: 'Patoloji raporlarından B kategorisinin tahmini',

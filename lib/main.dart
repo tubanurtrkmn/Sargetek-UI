@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-// import 'screens/birads_screen.dart'; // YORUM SATIRI - BI-RADS import'u geçici olarak kaldırıldı
+import 'screens/birads_screen.dart';
 import 'screens/bkategori_screen.dart';
 import 'screens/uyum_screen.dart';
 import 'screens/tani_screen.dart';
@@ -25,7 +25,7 @@ class SargetekApp extends StatelessWidget {
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
       routes: {
-        // '/birads': (context) => const BiradsScreen(), // YORUM SATIRI - BI-RADS route'u geçici olarak kaldırıldı
+        '/birads': (context) => const BiradsScreen(),
         '/bkategori': (context) => const BKategoriScreen(),
         '/uyum': (context) => const UyumScreen(),
         '/tani': (context) => const TaniScreen(),

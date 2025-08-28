@@ -9,7 +9,7 @@ class AnalysisTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<_TabData> tabs = [
-      // _TabData('BI-RADS Analizi', '/birads'), // YORUM SATIRI - BI-RADS sekmesi geçici olarak kaldırıldı
+      _TabData('BI-RADS Analizi', '/birads'),
       _TabData('Patoloji B Kategori Tahmini', '/bkategori'),
       _TabData(' Birads-B Kategori Karşılaştırması ', '/uyum'),
       _TabData('Uyumluluk Analizi', '/tani'),
