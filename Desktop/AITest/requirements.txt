@@ -1,0 +1,6 @@
+apify-client
+openai
+tiktoken
+sentence-transformers
+python-dotenv
+einops
